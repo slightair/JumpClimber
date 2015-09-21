@@ -78,10 +78,16 @@ project(":ios") {
 project(":core") {
     apply plugin: "java"
 
+    configurations { provided }
+
+    sourceSets {
+        main { compileClasspath += configurations.provided }
+    }
 
     dependencies {
         compile "com.badlogicgames.gdx:gdx:$gdxVersion"
         compile "com.badlogicgames.gdx:gdx-box2d:$gdxVersion"
+        provided 'org.projectlombok:lombok:1.16.6'
     }
 }
 

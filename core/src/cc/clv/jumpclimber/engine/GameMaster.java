@@ -1,7 +1,23 @@
 package cc.clv.jumpclimber.engine;
 
+import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.physics.box2d.World;
+
 public class GameMaster {
-    public Character character = new Character();
+    private Character character;
+
+    @lombok.Getter
+    private World world;
+
+    public GameMaster(float worldWidth, float worldHeight) {
+        setUpWorld(worldWidth, worldHeight);
+    }
+
+    private void setUpWorld(float worldWidth, float worldHeight) {
+        world = new World(new Vector2(0, -98f), true);
+
+        character = new Character(world, worldWidth / 2, worldHeight / 2);
+    }
 
     public void characterHoldLeftWall() {
         character.status = Character.Status.HOLD_LEFT_WALL;

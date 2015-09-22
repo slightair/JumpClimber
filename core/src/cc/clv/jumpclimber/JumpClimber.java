@@ -4,19 +4,29 @@ import cc.clv.jumpclimber.graphics.GameSceneDirector;
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.math.MathUtils;
+import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.physics.box2d.Body;
+import com.badlogic.gdx.physics.box2d.Box2D;
+import com.badlogic.gdx.physics.box2d.Box2DDebugRenderer;
 
 public class JumpClimber extends ApplicationAdapter {
+    private OrthographicCamera camera;
+    private SpriteBatch batch;
+    private Box2DDebugRenderer box2DDebugRenderer;
     private GameSceneDirector sceneDirector;
-
-    SpriteBatch batch;
-    Texture img;
 
     @Override
     public void create() {
+        camera = new OrthographicCamera();
+        camera.setToOrtho(false, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         batch = new SpriteBatch();
-        img = new Texture("hikari.png");
+
+        Box2D.init();
+        box2DDebugRenderer = new Box2DDebugRenderer();
 
         sceneDirector = new GameSceneDirector();
         Gdx.input.setInputProcessor(sceneDirector.getInput());
@@ -24,29 +34,25 @@ public class JumpClimber extends ApplicationAdapter {
 
     @Override
     public void render() {
+        sceneDirector.step(Gdx.graphics.getDeltaTime());
+
         Gdx.gl.glClearColor(0.48f, 0.84f, 0.99f, 1f);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+
         batch.begin();
 
-        switch (sceneDirector.getCharacterStatus()) {
-            case GROUND:
-                batch.draw(img, 136, 260);
-                break;
-            case HOLD_LEFT_WALL:
-            case RELEASE_LEFT_WALL:
-                batch.draw(img, 0, 260);
-                break;
-            case HOLD_RIGHT_WALL:
-            case RELEASE_RIGHT_WALL:
-                batch.draw(img, 272, 260);
-                break;
-            case JUMPING_TO_RIGHT:
-            case JUMPING_TO_LEFT:
-                batch.draw(img, 136, 260);
+        for (Body body : sceneDirector.getBodies()) {
+            Sprite sprite = (Sprite) body.getUserData();
+            if (sprite != null) {
+                Vector2 position = body.getPosition();
+                sprite.setRotation(MathUtils.radiansToDegrees * body.getAngle());
+                sprite.setPosition(position.x - sprite.getWidth() / 2, position.y - sprite.getHeight() / 2);
+                sprite.draw(batch);
+            }
         }
 
         batch.end();
+
+        box2DDebugRenderer.render(sceneDirector.getWorld(), camera.combined);
     }
-
-
 }

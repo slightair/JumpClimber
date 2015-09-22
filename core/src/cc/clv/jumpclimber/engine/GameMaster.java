@@ -7,14 +7,17 @@ import com.badlogic.gdx.physics.box2d.PolygonShape;
 import com.badlogic.gdx.physics.box2d.World;
 
 public class GameMaster {
-    private static final float WALL_WIDTH = 0.5f;
-    private static final float GROUND_HEIGHT = 0.8f;
+    private static final float WALL_WIDTH = 0.64f;
+    private static final float GROUND_HEIGHT = 0.64f;
     private static final float JUMP_VELOCITY_HORIZONTAL = 5f;
     private static final float JUMP_VELOCITY_VERTICAL = 8f;
 
     private final float worldWidth;
     private final float worldHeight;
+
     private Character character;
+    private Body leftWallBody;
+    private Body rightWallBody;
 
     @lombok.Getter
     private World world;
@@ -30,13 +33,15 @@ public class GameMaster {
         world = new World(new Vector2(0, -9.8f), true);
 
         character = new Character(world, worldWidth / 2, worldHeight / 2);
+
         addStaticBox(new Vector2(worldWidth / 2, GROUND_HEIGHT / 2), worldWidth, GROUND_HEIGHT);
-        addStaticBox(new Vector2(WALL_WIDTH / 2, worldHeight / 2), WALL_WIDTH, worldHeight);
-        addStaticBox(new Vector2(worldWidth - WALL_WIDTH / 2, worldHeight / 2), WALL_WIDTH, worldHeight);
+        leftWallBody = addStaticBox(new Vector2(WALL_WIDTH / 2, worldHeight / 2), WALL_WIDTH, worldHeight * 2);
+        rightWallBody = addStaticBox(new Vector2(worldWidth - WALL_WIDTH / 2, worldHeight / 2), WALL_WIDTH, worldHeight * 2);
     }
 
-    private void addStaticBox(Vector2 position, float width, float height) {
+    private Body addStaticBox(Vector2 position, float width, float height) {
         BodyDef bodyDef = new BodyDef();
+        bodyDef.type = BodyDef.BodyType.KinematicBody;
         bodyDef.position.set(position);
 
         Body body = world.createBody(bodyDef);
@@ -45,6 +50,20 @@ public class GameMaster {
 
         body.createFixture(shape, 0.0f);
         shape.dispose();
+
+        return body;
+    }
+
+    public void step(float deltaTime) {
+        world.step(deltaTime, 6, 2);
+
+        Vector2 velocity = character.getBody().getLinearVelocity().scl(0, 1);
+        leftWallBody.setLinearVelocity(velocity);
+        rightWallBody.setLinearVelocity(velocity);
+    }
+
+    public Vector2 getCharacterPosition() {
+        return character.getBody().getPosition();
     }
 
     public void characterHoldLeftWall() {

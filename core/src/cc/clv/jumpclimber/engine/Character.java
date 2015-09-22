@@ -8,18 +8,19 @@ import com.badlogic.gdx.physics.box2d.*;
 
 public class Character {
     public enum Status {
-        GROUND,
+        ON_GROUND,
         HOLD_LEFT_WALL,
         HOLD_RIGHT_WALL,
         RELEASE_LEFT_WALL,
         RELEASE_RIGHT_WALL,
         JUMPING_TO_RIGHT,
         JUMPING_TO_LEFT,
+        DEAD,
     }
 
     @lombok.Getter
     @lombok.Setter
-    private Status status = Status.GROUND;
+    private Status status = Status.ON_GROUND;
 
     @lombok.Getter
     private Body body;
@@ -48,6 +49,7 @@ public class Character {
         FixtureDef fixtureDef = new FixtureDef();
         fixtureDef.shape = shape;
         fixtureDef.density = 1.0f;
+        fixtureDef.filter.categoryBits = GameMaster.OBJECT_CATEGORY_CHARACTER;
 
         body.createFixture(fixtureDef);
         shape.dispose();

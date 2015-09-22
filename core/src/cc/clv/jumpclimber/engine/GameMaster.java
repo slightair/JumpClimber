@@ -1,14 +1,29 @@
 package cc.clv.jumpclimber.engine;
 
+import com.badlogic.gdx.graphics.g2d.Sprite;
+import com.badlogic.gdx.maps.MapLayer;
+import com.badlogic.gdx.maps.tiled.TiledMap;
+import com.badlogic.gdx.maps.tiled.TiledMapTile;
+import com.badlogic.gdx.maps.tiled.TiledMapTileLayer;
+import com.badlogic.gdx.maps.tiled.TmxMapLoader;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.*;
+import com.badlogic.gdx.utils.Array;
 
 public class GameMaster {
-    private static final float WALL_WIDTH = 0.64f;
-    private static final float GROUND_HEIGHT = 0.64f;
+    private static final float BLOCK_SIZE = 0.64f;
+    private static final float WALL_WIDTH = BLOCK_SIZE;
+    private static final float GROUND_HEIGHT = BLOCK_SIZE;
     private static final float JUMP_VELOCITY_HORIZONTAL = 5f;
     private static final float JUMP_VELOCITY_VERTICAL = 8f;
     private static final float HOLD_FEEDBACK = 5f;
+
+    public static final short OBJECT_CATEGORY_GROUND = 1 << 0;
+    public static final short OBJECT_CATEGORY_LEFT_WALL = 1 << 1;
+    public static final short OBJECT_CATEGORY_RIGHT_WALL = 1 << 2;
+    public static final short OBJECT_CATEGORY_CHARACTER = 1 << 3;
+    public static final short OBJECT_CATEGORY_OBSTACLE = 1 << 4;
+    public static final short OBJECT_CATEGORY_ITEM = 1 << 5;
 
     private final float worldWidth;
     private final float worldHeight;
@@ -17,6 +32,8 @@ public class GameMaster {
     private Body groundBody;
     private Body leftWallBody;
     private Body rightWallBody;
+    private TiledMap patternsTiledMap;
+    private Array<TiledMapTileLayer> patterns;
 
     @lombok.Getter
     private World world;
@@ -25,6 +42,14 @@ public class GameMaster {
         this.worldWidth = worldWidth;
         this.worldHeight = worldHeight;
 
+        patternsTiledMap = new TmxMapLoader().load("patterns.tmx");
+        patterns = new Array<TiledMapTileLayer>();
+
+        for (MapLayer layer : patternsTiledMap.getLayers()) {
+            if (layer instanceof TiledMapTileLayer && !layer.getName().startsWith("_")) {
+                patterns.add((TiledMapTileLayer) layer);
+            }
+        }
         setUpWorld();
     }
 
@@ -33,36 +58,33 @@ public class GameMaster {
         world.setContactListener(new ContactListener() {
             class ContactPair {
                 @lombok.Getter
-                private final Body self;
+                private final Fixture self;
 
                 @lombok.Getter
-                private final Body counterpart;
+                private final Fixture counterpart;
 
-                public ContactPair(Body self, Body counterpart) {
+                public ContactPair(Fixture self, Fixture counterpart) {
                     this.self = self;
                     this.counterpart = counterpart;
                 }
             }
 
             private ContactPair characterContactPair(Contact contact) {
-                Body contactBodyA = contact.getFixtureA().getBody();
-                Body contactBodyB = contact.getFixtureB().getBody();
-
-                Body contactCharacterBody = null;
-                Body anotherBody = null;
-                if (contactBodyA == character.getBody()) {
-                    contactCharacterBody = contactBodyA;
-                    anotherBody = contactBodyB;
-                } else if (contactBodyA == character.getBody()) {
-                    contactCharacterBody = contactBodyB;
-                    anotherBody = contactBodyA;
+                Fixture contactCharacter = null;
+                Fixture another = null;
+                if (contact.getFixtureA().getFilterData().categoryBits == OBJECT_CATEGORY_CHARACTER) {
+                    contactCharacter = contact.getFixtureA();
+                    another = contact.getFixtureB();
+                } else if (contact.getFixtureB().getFilterData().categoryBits == OBJECT_CATEGORY_CHARACTER) {
+                    contactCharacter = contact.getFixtureB();
+                    another = contact.getFixtureA();
                 }
 
-                if (contactCharacterBody == null || anotherBody == null) {
+                if (contactCharacter == null || another == null) {
                     return null;
                 }
 
-                return new ContactPair(contactCharacterBody, anotherBody);
+                return new ContactPair(contactCharacter, another);
             }
 
             @Override
@@ -94,12 +116,14 @@ public class GameMaster {
 
         character = new Character(world, worldWidth / 2, worldHeight / 2);
 
-        groundBody = addStaticBox(new Vector2(worldWidth / 2, GROUND_HEIGHT / 2), worldWidth, GROUND_HEIGHT);
-        leftWallBody = addStaticBox(new Vector2(WALL_WIDTH / 2, worldHeight / 2), WALL_WIDTH, worldHeight * 2);
-        rightWallBody = addStaticBox(new Vector2(worldWidth - WALL_WIDTH / 2, worldHeight / 2), WALL_WIDTH, worldHeight * 2);
+        groundBody = addKinematicBox(new Vector2(worldWidth / 2, GROUND_HEIGHT / 2), worldWidth, GROUND_HEIGHT, OBJECT_CATEGORY_GROUND, false);
+        leftWallBody = addKinematicBox(new Vector2(WALL_WIDTH / 2, worldHeight / 2), WALL_WIDTH, worldHeight * 2, OBJECT_CATEGORY_LEFT_WALL, false);
+        rightWallBody = addKinematicBox(new Vector2(worldWidth - WALL_WIDTH / 2, worldHeight / 2), WALL_WIDTH, worldHeight * 2, OBJECT_CATEGORY_RIGHT_WALL, false);
+
+        createObstacles(patterns.first());
     }
 
-    private Body addStaticBox(Vector2 position, float width, float height) {
+    private Body addKinematicBox(Vector2 position, float width, float height, short objectCategory, boolean isSensor) {
         BodyDef bodyDef = new BodyDef();
         bodyDef.type = BodyDef.BodyType.KinematicBody;
         bodyDef.position.set(position);
@@ -111,11 +135,28 @@ public class GameMaster {
         FixtureDef fixtureDef = new FixtureDef();
         fixtureDef.shape = shape;
         fixtureDef.density = 0.0f;
+        fixtureDef.filter.categoryBits = objectCategory;
+        fixtureDef.isSensor = isSensor;
 
         body.createFixture(fixtureDef);
         shape.dispose();
 
         return body;
+    }
+
+    private void createObstacles(TiledMapTileLayer layer) {
+        for (int y = 0; y < layer.getHeight(); y++) {
+            for (int x = 0; x < layer.getWidth(); x++) {
+                TiledMapTileLayer.Cell cell = layer.getCell(x, y);
+                if (cell != null) {
+                    TiledMapTile tile = cell.getTile();
+                    Sprite sprite = new Sprite(tile.getTextureRegion());
+                    Vector2 position = new Vector2(BLOCK_SIZE / 2 + x * BLOCK_SIZE, BLOCK_SIZE / 2 + y * BLOCK_SIZE);
+                    Body body = addKinematicBox(position, BLOCK_SIZE, BLOCK_SIZE, OBJECT_CATEGORY_OBSTACLE, false);
+                    body.setUserData(sprite);
+                }
+            }
+        }
     }
 
     public void step(float deltaTime) {
@@ -138,7 +179,7 @@ public class GameMaster {
     }
 
     public void characterRequestJumpToRightWall() {
-        if (!(character.getStatus() == Character.Status.HOLD_LEFT_WALL || character.getStatus() == Character.Status.GROUND)) {
+        if (!(character.getStatus() == Character.Status.HOLD_LEFT_WALL || character.getStatus() == Character.Status.ON_GROUND)) {
             return;
         }
 
@@ -151,7 +192,7 @@ public class GameMaster {
     }
 
     public void characterRequestJumpToLeftWall() {
-        if (!(character.getStatus() == Character.Status.HOLD_RIGHT_WALL || character.getStatus() == Character.Status.GROUND)) {
+        if (!(character.getStatus() == Character.Status.HOLD_RIGHT_WALL || character.getStatus() == Character.Status.ON_GROUND)) {
             return;
         }
 
@@ -159,19 +200,32 @@ public class GameMaster {
         character.getBody().setLinearVelocity(-JUMP_VELOCITY_HORIZONTAL, JUMP_VELOCITY_VERTICAL);
     }
 
-    private void characterBeginContact(Body body) {
-        if (body == groundBody) {
-            character.setStatus(Character.Status.GROUND);
-        } else if (body == leftWallBody) {
-            character.setStatus(Character.Status.HOLD_LEFT_WALL);
-            character.removeVerticalVelocity();
-        } else if (body == rightWallBody) {
-            character.setStatus(Character.Status.HOLD_RIGHT_WALL);
-            character.removeVerticalVelocity();
+    private void characterBeginContact(Fixture fixture) {
+        if (character.getStatus() == Character.Status.DEAD) {
+            return;
+        }
+
+        switch (fixture.getFilterData().categoryBits) {
+            case OBJECT_CATEGORY_GROUND:
+                character.setStatus(Character.Status.ON_GROUND);
+                break;
+            case OBJECT_CATEGORY_LEFT_WALL:
+                character.setStatus(Character.Status.HOLD_LEFT_WALL);
+                character.removeVerticalVelocity();
+                break;
+            case OBJECT_CATEGORY_RIGHT_WALL:
+                character.setStatus(Character.Status.HOLD_RIGHT_WALL);
+                character.removeVerticalVelocity();
+                break;
+            case OBJECT_CATEGORY_ITEM:
+                break;
+            case OBJECT_CATEGORY_OBSTACLE:
+                character.setStatus(Character.Status.DEAD);
+                break;
         }
     }
 
-    private void characterEndContact(Body body) {
+    private void characterEndContact(Fixture fixture) {
 
     }
 }

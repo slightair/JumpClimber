@@ -4,7 +4,6 @@ import cc.clv.jumpclimber.engine.GameMaster;
 import cc.clv.jumpclimber.input.GameSceneInput;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.OrthographicCamera;
-import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Matrix4;
@@ -24,8 +23,6 @@ public class GameSceneDirector {
 
     private final GameMaster gameMaster;
 
-    private Array<Sprite> backgroundSprites;
-
     public GameSceneDirector() {
         float width = Gdx.graphics.getWidth();
         float height = Gdx.graphics.getHeight();
@@ -34,33 +31,11 @@ public class GameSceneDirector {
         camera.setToOrtho(false, width, height);
 
         gameMaster = new GameMaster(width / WORLD_SCALE, height / WORLD_SCALE);
-        createBackground(width, height * 2);
     }
 
     private void moveCamera() {
         camera.position.y = gameMaster.getCharacterPosition().scl(WORLD_SCALE).y + CAMERA_OFFSET_Y;
         camera.update();
-    }
-
-    private void createBackground(float width, float height) {
-        backgroundSprites = new Array<Sprite>();
-
-        Texture texture = new Texture("block.png");
-
-        for (int y = 0; y < height / texture.getWidth(); y++) {
-            for (int x = 0; x < width / texture.getWidth(); x++) {
-                Sprite sprite = new Sprite(texture);
-
-                float gray = (float) (Math.random() * 0.05 + 0.5);
-                if (y == 0 || x == 0 || x == width / texture.getWidth() - 1) {
-                    gray = 0.8f;
-                }
-                sprite.setColor(gray, gray, gray, 1.0f);
-                sprite.setPosition(x * texture.getWidth(), y * texture.getHeight());
-
-                backgroundSprites.add(sprite);
-            }
-        }
     }
 
     public void step(float deltaTime) {
@@ -85,7 +60,7 @@ public class GameSceneDirector {
         Array<Body> bodies = new Array<Body>();
         getWorld().getBodies(bodies);
 
-        Array<Sprite> sprites = new Array<Sprite>(backgroundSprites);
+        Array<Sprite> sprites = new Array<Sprite>();
 
         for (Body body : bodies) {
             Sprite sprite = (Sprite) body.getUserData();

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.0" orientation="orthogonal" renderorder="right-down" width="10" height="32" tilewidth="32" tileheight="32" nextobjectid="1">
+ <tileset firstgid="1" name="objects" tilewidth="32" tileheight="32">
+  <tile id="0">
+   <image width="32" height="32" source="fire.png"/>
+  </tile>
+  <tile id="1">
+   <image width="32" height="32" source="ice.png"/>
+  </tile>
+  <tile id="2">
+   <image width="32" height="32" source="wind.png"/>
+  </tile>
+  <tile id="3">
+   <image width="32" height="32" source="block.png"/>
+  </tile>
+ </tileset>
+ <layer name="_wall" width="10" height="32">
+  <data encoding="base64" compression="zlib">
+   eJxjYSAMWKB4VN2oulF1o+qGkzoAhx4BAQ==
+  </data>
+ </layer>
+ <layer name="debug" width="10" height="32">
+  <data encoding="base64" compression="zlib">
+   eJxjYCAeMA2QOnqCoeRH5gFSR08wlPzIOEDq6AmGmx8BbkgAJQ==
+  </data>
+ </layer>
+</map>

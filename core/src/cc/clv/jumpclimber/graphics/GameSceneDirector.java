@@ -19,7 +19,7 @@ public class GameSceneDirector {
     private final OrthographicCamera camera;
 
     @lombok.Getter
-    private final GameSceneInput input = new GameSceneInput(this);
+    private final GameSceneInput input;
 
     private final GameMaster gameMaster;
 
@@ -31,6 +31,7 @@ public class GameSceneDirector {
         camera.setToOrtho(false, width, height);
 
         gameMaster = new GameMaster(width / WORLD_SCALE, height / WORLD_SCALE);
+        input = new GameSceneInput(gameMaster);
     }
 
     private void moveCamera() {
@@ -73,21 +74,5 @@ public class GameSceneDirector {
         }
 
         return sprites;
-    }
-
-    public void requestHoldLeftWall() {
-        gameMaster.characterRequestHoldLeftWall();
-    }
-
-    public void requestJumpToRightWall() {
-        gameMaster.characterRequestJumpToRightWall();
-    }
-
-    public void requestHoldRightWall() {
-        gameMaster.characterRequestHoldRightWall();
-    }
-
-    public void requestJumpToLeftWall() {
-        gameMaster.characterRequestJumpToLeftWall();
     }
 }

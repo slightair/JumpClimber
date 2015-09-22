@@ -1,6 +1,6 @@
 package cc.clv.jumpclimber.input;
 
-import cc.clv.jumpclimber.graphics.GameSceneDirector;
+import cc.clv.jumpclimber.engine.GameMaster;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.InputProcessor;
@@ -8,10 +8,10 @@ import com.badlogic.gdx.input.GestureDetector;
 import com.badlogic.gdx.math.Vector2;
 
 public class GameSceneInput extends InputMultiplexer {
-    private GameSceneDirector director;
+    private GameMaster gameMaster;
 
-    public GameSceneInput(GameSceneDirector director) {
-        this.director = director;
+    public GameSceneInput(GameMaster gameMaster) {
+        this.gameMaster = gameMaster;
 
         addProcessor(new GestureDetector(new GestureListener()));
         addProcessor(new KeyboardInputProcessor());
@@ -67,11 +67,11 @@ public class GameSceneInput extends InputMultiplexer {
             switch (keycode) {
                 case Input.Keys.A:
                 case Input.Keys.LEFT:
-                    director.requestHoldLeftWall();
+                    gameMaster.characterRequestHoldLeftWall();
                     break;
                 case Input.Keys.D:
                 case Input.Keys.RIGHT:
-                    director.requestHoldRightWall();
+                    gameMaster.characterRequestHoldRightWall();
                     break;
             }
             return false;
@@ -82,11 +82,11 @@ public class GameSceneInput extends InputMultiplexer {
             switch (keycode) {
                 case Input.Keys.A:
                 case Input.Keys.LEFT:
-                    director.requestJumpToRightWall();
+                    gameMaster.characterRequestJumpToRightWall();
                     break;
                 case Input.Keys.D:
                 case Input.Keys.RIGHT:
-                    director.requestJumpToLeftWall();
+                    gameMaster.characterRequestJumpToLeftWall();
                     break;
             }
             return false;

@@ -1,8 +1,12 @@
 package cc.clv.jumpclimber.engine;
 
+import cc.clv.jumpclimber.graphics.GameSceneDirector;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Sprite;
-import com.badlogic.gdx.physics.box2d.*;
+import com.badlogic.gdx.physics.box2d.Body;
+import com.badlogic.gdx.physics.box2d.BodyDef;
+import com.badlogic.gdx.physics.box2d.PolygonShape;
+import com.badlogic.gdx.physics.box2d.World;
 
 public class Character {
     public enum Status {
@@ -17,10 +21,10 @@ public class Character {
 
     @lombok.Getter
     @lombok.Setter
-    public Status status = Status.GROUND;
+    private Status status = Status.GROUND;
 
     @lombok.Getter
-    public Body body;
+    private Body body;
 
     private Sprite sprite;
 
@@ -38,15 +42,12 @@ public class Character {
 
         body = world.createBody(bodyDef);
         body.setUserData(sprite);
+        body.setFixedRotation(true);
 
         PolygonShape shape = new PolygonShape();
-        shape.setAsBox(sprite.getWidth() / 2, sprite.getHeight() / 2);
+        shape.setAsBox(sprite.getWidth() / 2 / GameSceneDirector.WORLD_SCALE, sprite.getHeight() / 2 / GameSceneDirector.WORLD_SCALE);
 
-        FixtureDef fixtureDef = new FixtureDef();
-        fixtureDef.shape = shape;
-        fixtureDef.density = 1.0f;
-
-        body.createFixture(fixtureDef);
+        body.createFixture(shape, 1.0f);
         shape.dispose();
     }
 }

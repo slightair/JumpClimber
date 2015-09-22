@@ -22,7 +22,9 @@ public class JumpClimber extends ApplicationAdapter {
     @Override
     public void create() {
         camera = new OrthographicCamera();
-        camera.setToOrtho(false, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+        camera.setToOrtho(false,
+                Gdx.graphics.getWidth() / GameSceneDirector.WORLD_SCALE,
+                Gdx.graphics.getHeight() / GameSceneDirector.WORLD_SCALE);
         batch = new SpriteBatch();
 
         Box2D.init();
@@ -44,7 +46,7 @@ public class JumpClimber extends ApplicationAdapter {
         for (Body body : sceneDirector.getBodies()) {
             Sprite sprite = (Sprite) body.getUserData();
             if (sprite != null) {
-                Vector2 position = body.getPosition();
+                Vector2 position = body.getPosition().scl(GameSceneDirector.WORLD_SCALE);
                 sprite.setRotation(MathUtils.radiansToDegrees * body.getAngle());
                 sprite.setPosition(position.x - sprite.getWidth() / 2, position.y - sprite.getHeight() / 2);
                 sprite.draw(batch);

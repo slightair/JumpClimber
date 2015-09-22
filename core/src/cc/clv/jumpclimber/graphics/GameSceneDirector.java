@@ -101,26 +101,18 @@ public class GameSceneDirector {
     }
 
     public void requestHoldLeftWall() {
-        gameMaster.characterHoldLeftWall();
-    }
-
-    public void requestReleaseLeftWall() {
-        gameMaster.characterReleaseLeftWall();
+        gameMaster.characterRequestHoldLeftWall();
     }
 
     public void requestJumpToRightWall() {
-        gameMaster.characterJumpToRightWall();
+        gameMaster.characterRequestJumpToRightWall();
     }
 
     public void requestHoldRightWall() {
-        gameMaster.characterHoldRightWall();
-    }
-
-    public void requestReleaseRightWall() {
-        gameMaster.characterReleaseRightWall();
+        gameMaster.characterRequestHoldRightWall();
     }
 
     public void requestJumpToLeftWall() {
-        gameMaster.characterJumpToLeftWall();
+        gameMaster.characterRequestJumpToLeftWall();
     }
 }

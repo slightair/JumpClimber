@@ -1,10 +1,7 @@
 package cc.clv.jumpclimber.engine;
 
 import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.physics.box2d.Body;
-import com.badlogic.gdx.physics.box2d.BodyDef;
-import com.badlogic.gdx.physics.box2d.PolygonShape;
-import com.badlogic.gdx.physics.box2d.World;
+import com.badlogic.gdx.physics.box2d.*;
 
 public class GameMaster {
     private static final float WALL_WIDTH = 0.64f;
@@ -16,6 +13,7 @@ public class GameMaster {
     private final float worldHeight;
 
     private Character character;
+    private Body groundBody;
     private Body leftWallBody;
     private Body rightWallBody;
 
@@ -31,10 +29,48 @@ public class GameMaster {
 
     private void setUpWorld() {
         world = new World(new Vector2(0, -9.8f), true);
+        world.setContactListener(new ContactListener() {
+            @Override
+            public void beginContact(Contact contact) {
+                Body contactBodyA = contact.getFixtureA().getBody();
+                Body contactBodyB = contact.getFixtureB().getBody();
+
+                Body contactCharacterBody = null;
+                Body anotherBody = null;
+                if (contactBodyA == character.getBody()) {
+                    contactCharacterBody = contactBodyA;
+                    anotherBody = contactBodyB;
+                } else if (contactBodyA == character.getBody()) {
+                    contactCharacterBody = contactBodyB;
+                    anotherBody = contactBodyA;
+                }
+
+                if (contactCharacterBody == null || anotherBody == null) {
+                    return;
+                }
+
+                characterContactAnotherBody(anotherBody);
+            }
+
+            @Override
+            public void endContact(Contact contact) {
+
+            }
+
+            @Override
+            public void preSolve(Contact contact, Manifold oldManifold) {
+
+            }
+
+            @Override
+            public void postSolve(Contact contact, ContactImpulse impulse) {
+
+            }
+        });
 
         character = new Character(world, worldWidth / 2, worldHeight / 2);
 
-        addStaticBox(new Vector2(worldWidth / 2, GROUND_HEIGHT / 2), worldWidth, GROUND_HEIGHT);
+        groundBody = addStaticBox(new Vector2(worldWidth / 2, GROUND_HEIGHT / 2), worldWidth, GROUND_HEIGHT);
         leftWallBody = addStaticBox(new Vector2(WALL_WIDTH / 2, worldHeight / 2), WALL_WIDTH, worldHeight * 2);
         rightWallBody = addStaticBox(new Vector2(worldWidth - WALL_WIDTH / 2, worldHeight / 2), WALL_WIDTH, worldHeight * 2);
     }
@@ -48,7 +84,11 @@ public class GameMaster {
         PolygonShape shape = new PolygonShape();
         shape.setAsBox(width / 2, height / 2);
 
-        body.createFixture(shape, 0.0f);
+        FixtureDef fixtureDef = new FixtureDef();
+        fixtureDef.shape = shape;
+        fixtureDef.density = 0.0f;
+
+        body.createFixture(fixtureDef);
         shape.dispose();
 
         return body;
@@ -66,29 +106,38 @@ public class GameMaster {
         return character.getBody().getPosition();
     }
 
-    public void characterHoldLeftWall() {
-        character.setStatus(Character.Status.HOLD_LEFT_WALL);
+    public void characterRequestHoldLeftWall() {
     }
 
-    public void characterReleaseLeftWall() {
-        character.setStatus(Character.Status.RELEASE_LEFT_WALL);
-    }
+    public void characterRequestJumpToRightWall() {
+        if (!(character.getStatus() == Character.Status.HOLD_LEFT_WALL || character.getStatus() == Character.Status.GROUND)) {
+            return;
+        }
 
-    public void characterJumpToRightWall() {
         character.setStatus(Character.Status.JUMPING_TO_RIGHT);
         character.getBody().setLinearVelocity(JUMP_VELOCITY_HORIZONTAL, JUMP_VELOCITY_VERTICAL);
     }
 
-    public void characterHoldRightWall() {
-        character.setStatus(Character.Status.HOLD_RIGHT_WALL);
+    public void characterRequestHoldRightWall() {
+
     }
 
-    public void characterReleaseRightWall() {
-        character.setStatus(Character.Status.RELEASE_RIGHT_WALL);
-    }
+    public void characterRequestJumpToLeftWall() {
+        if (!(character.getStatus() == Character.Status.HOLD_RIGHT_WALL || character.getStatus() == Character.Status.GROUND)) {
+            return;
+        }
 
-    public void characterJumpToLeftWall() {
         character.setStatus(Character.Status.JUMPING_TO_LEFT);
         character.getBody().setLinearVelocity(-JUMP_VELOCITY_HORIZONTAL, JUMP_VELOCITY_VERTICAL);
+    }
+
+    private void characterContactAnotherBody(Body body) {
+        if (body == groundBody) {
+            character.setStatus(Character.Status.GROUND);
+        } else if (body == leftWallBody) {
+            character.setStatus(Character.Status.HOLD_LEFT_WALL);
+        } else if (body == rightWallBody) {
+            character.setStatus(Character.Status.HOLD_RIGHT_WALL);
+        }
     }
 }

@@ -3,6 +3,7 @@ package cc.clv.jumpclimber.engine;
 import cc.clv.jumpclimber.graphics.GameSceneDirector;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Sprite;
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.*;
 
 public class Character {
@@ -10,6 +11,8 @@ public class Character {
         GROUND,
         HOLD_LEFT_WALL,
         HOLD_RIGHT_WALL,
+        RELEASE_LEFT_WALL,
+        RELEASE_RIGHT_WALL,
         JUMPING_TO_RIGHT,
         JUMPING_TO_LEFT,
     }
@@ -48,5 +51,10 @@ public class Character {
 
         body.createFixture(fixtureDef);
         shape.dispose();
+    }
+
+    public void removeVerticalVelocity() {
+        Vector2 velocity = body.getLinearVelocity().scl(1, 0);
+        body.setLinearVelocity(velocity);
     }
 }

@@ -12,7 +12,7 @@ public class TitleScreen extends AbstractScreen {
         Skin skin = new Skin(Gdx.files.internal("skins/uiskin.json"));
 
         Label label = new Label("Jump Climber", skin);
-        label.setPosition(Gdx.graphics.getWidth() / 2, Gdx.graphics.getHeight() / 2, Align.center);
+        label.setPosition(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, Align.center);
         addActor(label);
     }
 

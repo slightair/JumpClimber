@@ -27,22 +27,19 @@ public class GameScreen extends AbstractScreen {
 
     @Override
     public void buildStage() {
-        float width = Gdx.graphics.getWidth();
-        float height = Gdx.graphics.getHeight();
-
         camera = new OrthographicCamera();
-        camera.setToOrtho(false, width, height);
+        camera.setToOrtho(false, SCREEN_WIDTH, SCREEN_HEIGHT);
 
         batch = new SpriteBatch();
 
         Box2D.init();
         box2DDebugRenderer = new Box2DDebugRenderer();
 
-        gameMaster = new GameMaster(width / WORLD_SCALE, height / WORLD_SCALE);
+        gameMaster = new GameMaster(SCREEN_WIDTH / WORLD_SCALE, SCREEN_HEIGHT / WORLD_SCALE);
 
         Skin skin = new Skin(Gdx.files.internal("skins/uiskin.json"));
         heightLabel = new Label("0.0m", skin);
-        heightLabel.setPosition(8, height - 8, Align.topLeft);
+        heightLabel.setPosition(8, SCREEN_HEIGHT - 8, Align.topLeft);
         addActor(heightLabel);
     }
 

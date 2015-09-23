@@ -46,6 +46,11 @@ public class GameScreen extends AbstractScreen {
     public void render(float delta) {
         super.render(delta);
 
+        if (gameMaster.isOver()) {
+            ScreenSwitcher.getInstance().showScreen(ScreenEnum.TITLE);
+            return;
+        }
+
         gameMaster.step(delta);
         updateCamera();
 

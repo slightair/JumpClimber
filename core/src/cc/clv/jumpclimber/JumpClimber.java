@@ -9,6 +9,6 @@ public class JumpClimber extends Game {
     public void create() {
         ScreenSwitcher screenSwitcher = ScreenSwitcher.getInstance();
         screenSwitcher.initialize(this);
-        screenSwitcher.showScreen(ScreenEnum.GAME);
+        screenSwitcher.showScreen(ScreenEnum.TITLE);
     }
 }

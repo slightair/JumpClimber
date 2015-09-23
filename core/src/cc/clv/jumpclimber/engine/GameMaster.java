@@ -199,6 +199,10 @@ public class GameMaster {
         character.getBody().setLinearVelocity(-JUMP_VELOCITY_HORIZONTAL, JUMP_VELOCITY_VERTICAL);
     }
 
+    public boolean isOver() {
+        return character.getStatus() == Character.Status.DEAD;
+    }
+
     private void characterBeginContact(Fixture fixture) {
         if (character.getStatus() == Character.Status.DEAD) {
             return;

@@ -29,7 +29,6 @@ public class GameMaster {
     private final float worldHeight;
 
     private Character character;
-    private Body groundBody;
     private Body leftWallBody;
     private Body rightWallBody;
     private TiledMap patternsTiledMap;
@@ -116,7 +115,7 @@ public class GameMaster {
 
         character = new Character(world, worldWidth / 2, worldHeight / 2);
 
-        groundBody = addKinematicBox(new Vector2(worldWidth / 2, GROUND_HEIGHT / 2), worldWidth, GROUND_HEIGHT, OBJECT_CATEGORY_GROUND, false);
+        addKinematicBox(new Vector2(worldWidth / 2, GROUND_HEIGHT / 2), worldWidth, GROUND_HEIGHT, OBJECT_CATEGORY_GROUND, false);
         leftWallBody = addKinematicBox(new Vector2(WALL_WIDTH / 2, worldHeight / 2), WALL_WIDTH, worldHeight * 2, OBJECT_CATEGORY_LEFT_WALL, false);
         rightWallBody = addKinematicBox(new Vector2(worldWidth - WALL_WIDTH / 2, worldHeight / 2), WALL_WIDTH, worldHeight * 2, OBJECT_CATEGORY_RIGHT_WALL, false);
 

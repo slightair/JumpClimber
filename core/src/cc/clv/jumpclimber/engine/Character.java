@@ -8,6 +8,7 @@ import com.badlogic.gdx.physics.box2d.*;
 
 public class Character {
     public enum Status {
+        IN_THE_AIR,
         ON_GROUND,
         HOLD_LEFT_WALL,
         HOLD_RIGHT_WALL,
@@ -20,7 +21,7 @@ public class Character {
 
     @lombok.Getter
     @lombok.Setter
-    private Status status = Status.ON_GROUND;
+    private Status status = Status.IN_THE_AIR;
 
     @lombok.Getter
     private Body body;

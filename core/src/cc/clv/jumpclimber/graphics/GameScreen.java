@@ -10,6 +10,9 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.Box2D;
 import com.badlogic.gdx.physics.box2d.Box2DDebugRenderer;
+import com.badlogic.gdx.scenes.scene2d.ui.Label;
+import com.badlogic.gdx.scenes.scene2d.ui.Skin;
+import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.Array;
 
 public class GameScreen extends AbstractScreen {
@@ -20,6 +23,7 @@ public class GameScreen extends AbstractScreen {
     private SpriteBatch batch;
     private Box2DDebugRenderer box2DDebugRenderer;
     private GameMaster gameMaster;
+    private Label heightLabel;
 
     @Override
     public void buildStage() {
@@ -35,6 +39,11 @@ public class GameScreen extends AbstractScreen {
         box2DDebugRenderer = new Box2DDebugRenderer();
 
         gameMaster = new GameMaster(width / WORLD_SCALE, height / WORLD_SCALE);
+
+        Skin skin = new Skin(Gdx.files.internal("skins/uiskin.json"));
+        heightLabel = new Label("0.0m", skin);
+        heightLabel.setPosition(8, height - 8, Align.topLeft);
+        addActor(heightLabel);
     }
 
     @Override
@@ -50,6 +59,8 @@ public class GameScreen extends AbstractScreen {
             ScreenSwitcher.getInstance().showScreen(ScreenEnum.TITLE);
             return;
         }
+
+        heightLabel.setText(String.format("%.1fm", gameMaster.getCharacterAltitude()));
 
         gameMaster.step(delta);
         updateCamera();

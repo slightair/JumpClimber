@@ -60,4 +60,8 @@ public class Character {
         Vector2 velocity = body.getLinearVelocity().scl(1, 0);
         body.setLinearVelocity(velocity);
     }
+
+    public float getAltitude() {
+        return body.getWorldPoint(new Vector2(0, -sprite.getHeight() / 2 / GameScreen.WORLD_SCALE)).y;
+    }
 }

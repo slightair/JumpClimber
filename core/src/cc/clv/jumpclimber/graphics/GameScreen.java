@@ -1,0 +1,83 @@
+package cc.clv.jumpclimber.graphics;
+
+import cc.clv.jumpclimber.engine.GameMaster;
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.graphics.g2d.Sprite;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.math.MathUtils;
+import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.physics.box2d.Body;
+import com.badlogic.gdx.physics.box2d.Box2D;
+import com.badlogic.gdx.physics.box2d.Box2DDebugRenderer;
+import com.badlogic.gdx.utils.Array;
+
+public class GameScreen extends AbstractScreen {
+    public static final float WORLD_SCALE = 50f;
+    private static final float CAMERA_OFFSET_Y = 80f;
+
+    private OrthographicCamera camera;
+    private SpriteBatch batch;
+    private Box2DDebugRenderer box2DDebugRenderer;
+    private GameMaster gameMaster;
+
+    @Override
+    public void buildStage() {
+        float width = Gdx.graphics.getWidth();
+        float height = Gdx.graphics.getHeight();
+
+        camera = new OrthographicCamera();
+        camera.setToOrtho(false, width, height);
+
+        batch = new SpriteBatch();
+
+        Box2D.init();
+        box2DDebugRenderer = new Box2DDebugRenderer();
+
+        gameMaster = new GameMaster(width / WORLD_SCALE, height / WORLD_SCALE);
+    }
+
+    @Override
+    public void show() {
+        Gdx.input.setInputProcessor(new GameScreenInputProcessor(gameMaster));
+    }
+
+    @Override
+    public void render(float delta) {
+        super.render(delta);
+
+        gameMaster.step(delta);
+        updateCamera();
+
+        renderWorldObjects();
+
+        box2DDebugRenderer.render(gameMaster.getWorld(), camera.combined.scl(WORLD_SCALE));
+    }
+
+    private void updateCamera() {
+        camera.position.y = gameMaster.getCharacterPosition().scl(WORLD_SCALE).y + CAMERA_OFFSET_Y;
+        camera.update();
+    }
+
+    private void renderWorldObjects() {
+        Array<Body> bodies = new Array<Body>();
+        gameMaster.getWorld().getBodies(bodies);
+
+        batch.setProjectionMatrix(camera.combined);
+        batch.begin();
+
+        for (Body body : bodies) {
+            if (body.getUserData() instanceof Sprite) {
+                Sprite sprite = (Sprite) body.getUserData();
+
+                Vector2 position = body.getPosition().scl(WORLD_SCALE);
+                sprite.setRotation(MathUtils.radiansToDegrees * body.getAngle());
+                sprite.setPosition(position.x - sprite.getWidth() / 2, position.y - sprite.getHeight() / 2);
+
+                sprite.draw(batch);
+            }
+        }
+
+        batch.end();
+    }
+}

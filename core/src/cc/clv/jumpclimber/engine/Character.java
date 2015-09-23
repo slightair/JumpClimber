@@ -1,6 +1,6 @@
 package cc.clv.jumpclimber.engine;
 
-import cc.clv.jumpclimber.graphics.GameSceneDirector;
+import cc.clv.jumpclimber.graphics.GameScreen;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.math.Vector2;
@@ -44,7 +44,7 @@ public class Character {
         body.setFixedRotation(true);
 
         PolygonShape shape = new PolygonShape();
-        shape.setAsBox(sprite.getWidth() / 2 / GameSceneDirector.WORLD_SCALE, sprite.getHeight() / 2 / GameSceneDirector.WORLD_SCALE);
+        shape.setAsBox(sprite.getWidth() / 2 / GameScreen.WORLD_SCALE, sprite.getHeight() / 2 / GameScreen.WORLD_SCALE);
 
         FixtureDef fixtureDef = new FixtureDef();
         fixtureDef.shape = shape;

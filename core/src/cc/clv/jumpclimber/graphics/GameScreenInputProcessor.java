@@ -1,4 +1,4 @@
-package cc.clv.jumpclimber.input;
+package cc.clv.jumpclimber.graphics;
 
 import cc.clv.jumpclimber.engine.GameMaster;
 import com.badlogic.gdx.Input;
@@ -7,10 +7,10 @@ import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.input.GestureDetector;
 import com.badlogic.gdx.math.Vector2;
 
-public class GameSceneInput extends InputMultiplexer {
+public class GameScreenInputProcessor extends InputMultiplexer {
     private GameMaster gameMaster;
 
-    public GameSceneInput(GameMaster gameMaster) {
+    public GameScreenInputProcessor(GameMaster gameMaster) {
         this.gameMaster = gameMaster;
 
         addProcessor(new GestureDetector(new GestureListener()));

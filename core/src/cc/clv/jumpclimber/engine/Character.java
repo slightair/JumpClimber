@@ -56,8 +56,11 @@ public class Character {
         shape.dispose();
     }
 
-    public void removeVerticalVelocity() {
-        Vector2 velocity = body.getLinearVelocity().scl(1, 0);
+    public void restrictVelocity() {
+        Vector2 velocity = body.getLinearVelocity().scl(0, 1);
+        if (velocity.y > 0) {
+            velocity.y /= 4;
+        }
         body.setLinearVelocity(velocity);
     }
 

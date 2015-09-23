@@ -24,4 +24,14 @@
    eJxjYCAeMA2QOnqCoeRH5gFSR08wlPzIOEDq6AmGmx8BbkgAJQ==
   </data>
  </layer>
+ <layer name="debug2" width="10" height="32">
+  <data encoding="base64" compression="zlib">
+   eJxjYKAOYB4gdeSAoeRWcgHjAKkjBwwlt5ILmAZIHTlgKLmVUgAAbkgAJQ==
+  </data>
+ </layer>
+ <layer name="debug3" width="10" height="32">
+  <data encoding="base64" compression="zlib">
+   eJxjYBgZgHGQqxsuYDScR8FQAgAeQAAJ
+  </data>
+ </layer>
 </map>

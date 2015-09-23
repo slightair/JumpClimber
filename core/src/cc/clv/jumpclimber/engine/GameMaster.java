@@ -12,8 +12,8 @@ import com.badlogic.gdx.utils.Array;
 
 public class GameMaster {
     private static final float BLOCK_SIZE = 0.64f;
-    private static final float WALL_WIDTH = BLOCK_SIZE;
-    private static final float GROUND_HEIGHT = BLOCK_SIZE;
+    private static final float PREPARE_NEXT_PATTERN_THRESHOLD = BLOCK_SIZE * 16;
+    private static final float CHARACTER_FALL_LIMIT = BLOCK_SIZE * 16;
     private static final float JUMP_VELOCITY_HORIZONTAL = 5f;
     private static final float JUMP_VELOCITY_VERTICAL = 8f;
     private static final float HOLD_FEEDBACK = 5f;
@@ -29,13 +29,15 @@ public class GameMaster {
     private final float worldHeight;
 
     private Character character;
-    private Body leftWallBody;
-    private Body rightWallBody;
     private TiledMap patternsTiledMap;
     private Array<TiledMapTileLayer> patterns;
+    private float preparedPatternAltitude = 0;
 
     @lombok.Getter
     private World world;
+
+    @lombok.Getter
+    private float characterReachedAltitude = 0;
 
     public GameMaster(float worldWidth, float worldHeight) {
         this.worldWidth = worldWidth;
@@ -114,12 +116,21 @@ public class GameMaster {
         });
 
         character = new Character(world, worldWidth / 2, worldHeight / 2);
+        addKinematicBox(new Vector2(worldWidth / 2, -BLOCK_SIZE / 2), worldWidth, BLOCK_SIZE, OBJECT_CATEGORY_GROUND, false);
 
-        addKinematicBox(new Vector2(worldWidth / 2, -GROUND_HEIGHT / 2), worldWidth, GROUND_HEIGHT, OBJECT_CATEGORY_GROUND, false);
-        leftWallBody = addKinematicBox(new Vector2(WALL_WIDTH / 2, worldHeight / 2), WALL_WIDTH, worldHeight * 2, OBJECT_CATEGORY_LEFT_WALL, false);
-        rightWallBody = addKinematicBox(new Vector2(worldWidth - WALL_WIDTH / 2, worldHeight / 2), WALL_WIDTH, worldHeight * 2, OBJECT_CATEGORY_RIGHT_WALL, false);
+        setUpNextPattern();
+    }
 
-        createObstacles(patterns.first());
+    private void setUpNextPattern() {
+        TiledMapTileLayer layer = patterns.random();
+        createObstacles(layer);
+
+        float wallHeight = layer.getHeight() * BLOCK_SIZE;
+        float wallPositionY = preparedPatternAltitude + wallHeight / 2;
+        addKinematicBox(new Vector2(BLOCK_SIZE / 2, wallPositionY), BLOCK_SIZE, wallHeight, OBJECT_CATEGORY_LEFT_WALL, true);
+        addKinematicBox(new Vector2(worldWidth - BLOCK_SIZE / 2, wallPositionY), BLOCK_SIZE, wallHeight, OBJECT_CATEGORY_RIGHT_WALL, true);
+
+        preparedPatternAltitude += wallHeight;
     }
 
     private Body addKinematicBox(Vector2 position, float width, float height, short objectCategory, boolean isSensor) {
@@ -150,7 +161,7 @@ public class GameMaster {
                 if (cell != null) {
                     TiledMapTile tile = cell.getTile();
                     Sprite sprite = new Sprite(tile.getTextureRegion());
-                    Vector2 position = new Vector2(BLOCK_SIZE / 2 + x * BLOCK_SIZE, BLOCK_SIZE / 2 + y * BLOCK_SIZE);
+                    Vector2 position = new Vector2(BLOCK_SIZE / 2 + x * BLOCK_SIZE, preparedPatternAltitude + BLOCK_SIZE / 2 + y * BLOCK_SIZE);
                     Body body = addKinematicBox(position, BLOCK_SIZE, BLOCK_SIZE, OBJECT_CATEGORY_OBSTACLE, false);
                     body.setUserData(sprite);
                 }
@@ -158,16 +169,41 @@ public class GameMaster {
         }
     }
 
+    private void removeOutsideObjects() {
+        Array<Body> bodies = new Array<Body>();
+        world.getBodies(bodies);
+
+        float removeLine = characterReachedAltitude - worldHeight;
+        for (Body body : bodies) {
+            if (body.getPosition().y < removeLine) {
+                world.destroyBody(body);
+            }
+        }
+    }
+
     public void step(float deltaTime) {
         world.step(deltaTime, 6, 2);
 
-        if (character.getStatus() == Character.Status.HOLD_LEFT_WALL || character.getStatus() == Character.Status.HOLD_RIGHT_WALL) {
-            character.getBody().applyForceToCenter(0, HOLD_FEEDBACK, true);
+        characterReachedAltitude = Math.max(character.getAltitude(), characterReachedAltitude);
+        if (preparedPatternAltitude - PREPARE_NEXT_PATTERN_THRESHOLD < characterReachedAltitude) {
+            setUpNextPattern();
+            removeOutsideObjects();
         }
 
-        Vector2 velocity = character.getBody().getLinearVelocity().scl(0, 1);
-        leftWallBody.setLinearVelocity(velocity);
-        rightWallBody.setLinearVelocity(velocity);
+        Body characterBody = character.getBody();
+
+        float characterFallDeadLine = characterReachedAltitude - CHARACTER_FALL_LIMIT - worldHeight / 2;
+        if (characterBody.getPosition().y < characterFallDeadLine) {
+            character.setStatus(Character.Status.DEAD);
+        }
+
+        if (character.getStatus() == Character.Status.HOLD_LEFT_WALL || character.getStatus() == Character.Status.HOLD_RIGHT_WALL) {
+            characterBody.applyForceToCenter(0, HOLD_FEEDBACK, true);
+        }
+    }
+
+    public boolean needUpdateCameraPosition() {
+        return character.getBody().getPosition().y >= characterReachedAltitude - CHARACTER_FALL_LIMIT;
     }
 
     public Vector2 getCharacterPosition() {
@@ -218,11 +254,11 @@ public class GameMaster {
                 break;
             case OBJECT_CATEGORY_LEFT_WALL:
                 character.setStatus(Character.Status.HOLD_LEFT_WALL);
-                character.removeVerticalVelocity();
+                character.restrictVelocity();
                 break;
             case OBJECT_CATEGORY_RIGHT_WALL:
                 character.setStatus(Character.Status.HOLD_RIGHT_WALL);
-                character.removeVerticalVelocity();
+                character.restrictVelocity();
                 break;
             case OBJECT_CATEGORY_ITEM:
                 break;

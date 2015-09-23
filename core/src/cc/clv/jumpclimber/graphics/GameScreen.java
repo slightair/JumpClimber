@@ -71,7 +71,10 @@ public class GameScreen extends AbstractScreen {
     }
 
     private void updateCamera() {
-        camera.position.y = gameMaster.getCharacterPosition().scl(WORLD_SCALE).y + CAMERA_OFFSET_Y;
+        if (gameMaster.needUpdateCameraPosition()) {
+            camera.position.y = gameMaster.getCharacterPosition().scl(WORLD_SCALE).y + CAMERA_OFFSET_Y;
+        }
+
         camera.update();
     }
 
